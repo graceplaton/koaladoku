@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Koaladoku 🐨</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f7f4ef;
+    --surface: #ffffff;
+    --surface2: #f0ede8;
+    --border: #e2ddd6;
+    --text: #2c2a26;
+    --text2: #7a756e;
+    --accent: #5b8a4a;
+    --accent2: #3d6233;
+    --danger: #c0392b;
+    --radius: 12px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  #app { max-width: 900px; margin: 0 auto; padding: 16px; }
+
+  /* ─── HEADER ─── */
+  .header {
+    text-align: center;
+    padding: 24px 0 16px;
+  }
+  .header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: -0.5px;
+  }
+  .header p { color: var(--text2); font-size: 0.95rem; margin-top: 4px; }
+
+  /* ─── SCREENS ─── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ─── JOIN SCREEN ─── */
+  .join-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 32px;
+    max-width: 420px;
+    margin: 24px auto;
+    box-shadow: var(--shadow);
+    text-align: center;
+  }
+  .join-card h2 { font-size: 1.4rem; margin-bottom: 8px; color: var(--accent2); }
+  .join-card p { color: var(--text2); margin-bottom: 20px; font-size: 0.9rem; }
+  .koala-big { font-size: 4rem; margin-bottom: 12px; }
+  input[type="text"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+  .btn {
+    display: inline-block;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    width: 100%;
+    margin-top: 12px;
+  }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--border); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ─── LOBBY SCREEN ─── */
+  .lobby-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  @media(max-width:600px){ .lobby-grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card h3 { font-size: 1rem; font-weight: 600; color: var(--text2); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.8rem; }
+
+  .leaderboard-list { list-style: none; }
+  .leaderboard-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.95rem;
+  }
+  .leaderboard-list li:last-child { border-bottom: none; }
+  .lb-rank { font-weight: 700; color: var(--text2); min-width: 24px; font-size: 0.85rem; }
+  .lb-name { flex: 1; font-weight: 500; }
+  .lb-score { font-weight: 700; color: var(--accent); }
+  .lb-status { font-size: 0.75rem; color: var(--text2); }
+
+  .share-box {
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: var(--text2);
+    word-break: break-all;
+    cursor: pointer;
+    border: 1px dashed var(--border);
+    margin-top: 8px;
+  }
+  .share-box:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ─── GAME SCREEN ─── */
+  .game-layout { display: grid; grid-template-columns: 1fr 280px; gap: 16px; align-items: start; }
+  @media(max-width:700px){ .game-layout { grid-template-columns: 1fr; } }
+
+  .puzzle-wrap {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 16px;
+    box-shadow: var(--shadow);
+  }
+  .puzzle-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .puzzle-info .player-name { font-weight: 700; color: var(--accent2); }
+  .timer { font-size: 1.3rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+  .timer.urgent { color: var(--danger); }
+
+  /* Grid */
+  #grid-container { position: relative; user-select: none; }
+  .puzzle-grid {
+    display: grid;
+    gap: 2px;
+    background: var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 2px solid #b8b0a5;
+  }
+  .cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    cursor: pointer;
+    background: var(--surface);
+    position: relative;
+    transition: background 0.1s;
+  }
+  .cell:hover { background: #eaf4e3; }
+  .cell.selected { background: #d4edca !important; outline: 2px solid var(--accent); outline-offset: -2px; }
+  .cell.error { background: #fdecea !important; }
+  .cell.correct { background: #eaf4e3 !important; }
+  .cell.region-shade { background: #f8f5f0; }
+  .cell .koala-icon { font-size: 1.6rem; line-height: 1; pointer-events: none; }
+  .cell .color-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px;
+    right: 3px;
+  }
+
+  /* Color palette */
+  .palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .palette-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .palette-btn.active { border-color: var(--text); transform: scale(1.1); }
+  .palette-btn:hover { transform: scale(1.05); }
+
+  .clear-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--text2);
+    margin-top: 8px;
+  }
+  .clear-btn:hover { background: var(--border); }
+
+  /* Side panel */
+  .side-panel { display: flex; flex-direction: column; gap: 12px; }
+
+  .rules-card .rule {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 0.85rem;
+    color: var(--text2);
+    border-bottom: 1px solid var(--border);
+  }
+  .rules-card .rule:last-child { border-bottom: none; }
+  .rule-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+  /* Win banner */
+  .win-banner {
+    background: var(--accent);
+    color: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+  }
+  .win-banner h2 { font-size: 1.5rem; margin-bottom: 4px; }
+  .win-banner p { opacity: 0.9; }
+
+  /* Waiting */
+  .waiting-msg {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text2);
+  }
+  .waiting-msg .big { font-size: 3rem; margin-bottom: 12px; }
+
+  /* Progress bar */
+  .progress-bar-wrap { background: var(--border); border-radius: 4px; height: 6px; margin-top: 8px; }
+  .progress-bar { background: var(--accent); height: 6px; border-radius: 4px; transition: width 0.4s; }
+
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--text);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    transition: transform 0.3s;
+    z-index: 999;
+    pointer-events: none;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ─── HOST SCREEN ─── */
+  .host-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .host-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width:600px){ .host-grid { grid-template-columns: 1fr; } }
+  .players-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+  }
+  .player-chip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 0.82rem;
+    text-align: center;
+  }
+  .player-chip .chip-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .player-chip .chip-status { font-size: 0.72rem; color: var(--text2); margin-top: 2px; }
+  .player-chip.done { border-color: var(--accent); background: #eaf4e3; }
+  .stat-row { display: flex; gap: 12px; margin-bottom: 12px; }
+  .stat-box { flex: 1; background: var(--surface2); border-radius: 8px; padding: 12px; text-align: center; }
+  .stat-box .num { font-size: 1.6rem; font-weight: 700; color: var(--accent2); }
+  .stat-box .lbl { font-size: 0.75rem; color: var(--text2); }
+
+  .tab-row { display: flex; gap: 6px; margin-bottom: 12px; }
+  .tab-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); cursor: pointer; font-size: 0.85rem; color: var(--text2); }
+  .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  .refresh-note { font-size: 0.75rem; color: var(--text2); margin-top: 8px; }
+
+  .color-region-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.8rem;
+    color: var(--text2);
+  }
+  .legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="header">
+    <h1>🐨 Koaladoku</h1>
+    <p>One koala per color · One koala per row & column · Koalas can't touch</p>
+  </div>
+
+  <!-- JOIN SCREEN -->
+  <div id="screen-join" class="screen active">
+    <div class="join-card">
+      <div class="koala-big">🐨</div>
+      <h2>Join the Game</h2>
+      <p>Enter your name to play Koaladoku with others!</p>
+      <input type="text" id="player-name-input" placeholder="Your name..." maxlength="20" />
+      <button class="btn btn-primary" id="join-btn" onclick="joinGame()">Join &rarr;</button>
+      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
+        <small style="color:var(--text2)">Hosting a game?</small><br>
+        <button class="btn btn-secondary" style="margin-top:8px;padding:8px 20px;font-size:0.9rem;" onclick="goHost()">Open Host View</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOBBY / WAITING SCREEN (player) -->
+  <div id="screen-lobby" class="screen">
+    <div class="waiting-msg">
+      <div class="big">⏳</div>
+      <h2 id="lobby-msg">Waiting for the game to start...</h2>
+      <p id="lobby-sub" style="margin-top:8px;color:var(--text2);"></p>
+      <div style="margin-top:20px;">
+        <div style="font-size:0.85rem;color:var(--text2);margin-bottom:8px;">Players joined:</div>
+        <div id="lobby-players" class="players-grid" style="max-width:400px;margin:0 auto;"></div>
+      </div>
+      <button class="btn btn-secondary" style="margin-top:20px;padding:8px 20px;" onclick="checkGameState()">Refresh</button>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN (player) -->
+  <div id="screen-game" class="screen">
+    <div id="win-area"></div>
+    <div class="game-layout">
+      <div class="puzzle-wrap">
+        <div class="puzzle-info">
+          <span class="player-name" id="game-playername"></span>
+          <span class="timer" id="game-timer">0:00</span>
+        </div>
+        <div id="grid-container">
+          <div class="puzzle-grid" id="puzzle-grid"></div>
+        </div>
+        <div class="color-region-legend" id="color-legend"></div>
+        <div class="palette" id="palette"></div>
+        <button class="clear-btn" onclick="clearSelected()">✕ Clear selected cell</button>
+        <div style="margin-top:12px;font-size:0.8rem;color:var(--text2)">Tap a cell, then tap a koala color below to place it.</div>
+      </div>
+      <div class="side-panel">
+        <div class="card rules-card">
+          <h3>Rules</h3>
+          <div class="rule"><span class="rule-icon">🎨</span><span>One 🐨 per color region</span></div>
+          <div class="rule"><span class="rule-icon">↔️</span><span>One 🐨 per row</span></div>
+          <div class="rule"><span class="rule-icon">↕️</span><span>One 🐨 per column</span></div>
+          <div class="rule"><span class="rule-icon">🚫</span><span>Koalas cannot touch (including diagonally)</span></div>
+        </div>
+        <div class="card">
+          <h3>Leaderboard</h3>
+          <ul class="leaderboard-list" id="game-leaderboard"></ul>
+          <button class="btn btn-secondary" style="margin-top:10px;padding:7px;width:100%;font-size:0.85rem;" onclick="checkGameState()">Refresh scores</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOST SCREEN -->
+  <div id="screen-host" class="screen">
+    <div class="host-header">
+      <div>
+        <h2 style="font-size:1.3rem;font-weight:700;color:var(--accent2)">🎮 Host Dashboard</h2>
+        <p style="font-size:0.85rem;color:var(--text2)">Share the link below for players to join</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-secondary" style="padding:8px 16px;font-size:0.85rem;" onclick="hostRefresh()">↻ Refresh</button>
+        <button class="btn btn-primary" style="padding:8px 16px;font-size:0.85rem;" id="host-start-btn" onclick="hostStartGame()">▶ Start New Game</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px;">
+      <h3>Player Join Link</h3>
+      <div class="share-box" id="share-link" onclick="copyLink()">Click to copy join link</div>
+      <div style="font-size:0.75rem;color:var(--text2);margin-top:6px;">Players open this link on their device and enter their name to join.</div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-box"><div class="num" id="stat-players">0</div><div class="lbl">Players</div></div>
+      <div class="stat-box"><div class="num" id="stat-finished">0</div><div class="lbl">Finished</div></div>
+      <div class="stat-box"><div class="num" id="stat-status">Lobby</div><div class="lbl">Status</div></div>
+    </div>
+
+    <div class="host-grid">
+      <div class="card">
+        <h3>Live Leaderboard</h3>
+        <ul class="leaderboard-list" id="host-leaderboard"></ul>
+      </div>
+      <div class="card">
+        <h3>All Players</h3>
+        <div class="players-grid" id="host-players"></div>
+        <p class="refresh-note">Auto-refreshes every 10 seconds</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+// ═══════════════════════════════════════════════════════════
+//  FIREBASE SETUP
+// ═══════════════════════════════════════════════════════════
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDz3jPGBTM-tc6uMYnz3lovzU3XGtWz_ps",
+  authDomain: "koaladoku-39ee1.firebaseapp.com",
+  databaseURL: "https://koaladoku-39ee1-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "koaladoku-39ee1",
+  storageBucket: "koaladoku-39ee1.firebasestorage.app",
+  messagingSenderId: "874644389323",
+  appId: "1:874644389323:web:d4c93e9f9fe83904d74a4e"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ═══════════════════════════════════════════════════════════
+//  FIREBASE STORAGE WRAPPERS
+// ═══════════════════════════════════════════════════════════
+async function sGet(key) {
+  try {
+    const snapshot = await get(ref(db, key));
+    return snapshot.exists() ? snapshot.val() : null;
+  } catch(e) { console.error('sGet error:', e); return null; }
+}
+
+async function sSet(key, val) {
+  try {
+    await set(ref(db, key), val);
+  } catch(e) { console.error('sSet error:', e); }
+}
+
+// Firebase real-time listener
+function sListen(key, callback) {
+  onValue(ref(db, key), snapshot => {
+    callback(snapshot.exists() ? snapshot.val() : null);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  STORAGE KEYS
+// ═══════════════════════════════════════════════════════════
+const KEY_PLAYERS    = 'koaladoku/players';
+const KEY_GAMESTATE  = 'koaladoku/gamestate';
+const KEY_PUZZLE     = 'koaladoku/puzzle';
+const KEY_SCORES     = 'koaladoku/scores';
+
+// ═══════════════════════════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════════════════════════
+let playerName = '';
+let gameStarted = false;
+let puzzle = null;       // { size, grid (color regions), solution }
+let playerGrid = [];     // player's current placement
+let selectedCell = null; // {r,c}
+let selectedColor = null;
+let timerInterval = null;
+let startTime = null;
+let solved = false;
+let isHost = false;
+let hostRefreshInterval = null;
+
+// Colors for koala regions
+const COLORS = [
+  { bg: '#c8e6c9', text: '#2e7d32', dot: '#388e3c', emoji: '🟢' },
+  { bg: '#bbdefb', text: '#1565c0', dot: '#1976d2', emoji: '🔵' },
+  { bg: '#f8bbd0', text: '#880e4f', dot: '#c2185b', emoji: '🩷' },
+  { bg: '#fff9c4', text: '#f57f17', dot: '#fbc02d', emoji: '🟡' },
+  { bg: '#e1bee7', text: '#6a1b9a', dot: '#8e24aa', emoji: '🟣' },
+  { bg: '#ffccbc', text: '#bf360c', dot: '#e64a19', emoji: '🟠' },
+  { bg: '#b2ebf2', text: '#006064', dot: '#00838f', emoji: '🩵' },
+  { bg: '#d7ccc8', text: '#4e342e', dot: '#6d4c41', emoji: '🤎' },
+];
+
+// ═══════════════════════════════════════════════════════════
+//  SCREEN HELPERS
+// ═══════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showToast(msg, duration=2200) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  JOIN FLOW
+// ═══════════════════════════════════════════════════════════
+document.getElementById('player-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') joinGame();
+});
+
+async function joinGame() {
+  const name = document.getElementById('player-name-input').value.trim();
+  if (!name) { showToast('Please enter your name!'); return; }
+  playerName = name;
+
+  // Register player
+  let players = await sGet(KEY_PLAYERS) || {};
+  players[name] = players[name] || { name, joined: Date.now(), score: null, time: null, done: false };
+  await sSet(KEY_PLAYERS, players);
+
+  // Check if game is already running — use real-time listener
+  showScreen('screen-lobby');
+  updateLobby();
+
+  sListen(KEY_GAMESTATE, async (gs) => {
+    if (gs && gs.status === 'running' && !solved && document.getElementById('screen-game').classList.contains('active') === false) {
+      puzzle = await sGet(KEY_PUZZLE);
+      if (puzzle) startPlayerGame();
+    }
+    updateLobby();
+  });
+}
+
+async function updateLobby() {
+  const players = await sGet(KEY_PLAYERS) || {};
+  const names = Object.keys(players);
+  document.getElementById('lobby-sub').textContent = `${names.length} player(s) in lobby`;
+  const wrap = document.getElementById('lobby-players');
+  wrap.innerHTML = names.map(n => `<div class="player-chip"><div class="chip-name">${n}</div></div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PUZZLE GENERATION
+// ═══════════════════════════════════════════════════════════
+function generatePuzzle(size) {
+  // size = number of colors = grid size (NxN with N colors)
+  // Each color region has exactly 1 koala solution
+  let solution = null;
+  let regions = null;
+  let attempts = 0;
+
+  while (!solution && attempts < 200) {
+    attempts++;
+    const candidate = tryGenerate(size);
+    if (candidate) { solution = candidate.solution; regions = candidate.regions; }
+  }
+
+  if (!solution) {
+    // fallback: simple diagonal
+    solution = Array.from({length: size}, (_, i) => ({r: i, c: i}));
+    regions = buildSimpleRegions(size, solution);
+  }
+
+  return { size, regions, solution };
+}
+
+function tryGenerate(size) {
+  // Place N queens (koalas) s.t. no two share row, col, or are adjacent (incl diagonal)
+  const queens = [];
+  if (!placeQueens(queens, size, 0)) return null;
+
+  // Build regions: assign each queen a color region (flood-fill territory)
+  const regions = buildRegions(size, queens);
+  if (!regions) return null;
+
+  return { solution: queens, regions };
+}
+
+function placeQueens(queens, size, row) {
+  if (row === size) return true;
+  const cols = shuffle(Array.from({length: size}, (_, i) => i));
+  for (const col of cols) {
+    if (isValid(queens, row, col)) {
+      queens.push({r: row, c: col});
+      if (placeQueens(queens, size, row + 1)) return true;
+      queens.pop();
+    }
+  }
+  return false;
+}
+
+function isValid(queens, r, c) {
+  for (const q of queens) {
+    if (q.c === c) return false; // same col
+    if (Math.abs(q.r - r) <= 1 && Math.abs(q.c - c) <= 1) return false; // adjacent
+  }
+  return true;
+}
+
+function buildRegions(size, queens) {
+  // BFS flood-fill: each queen "claims" territory by proximity
+  const grid = Array.from({length: size}, () => Array(size).fill(-1));
+
+  // Seed each queen's cell with its color index
+  queens.forEach((q, i) => grid[q.r][q.c] = i);
+
+  // BFS from all queens simultaneously
+  const queue = queens.map((q, i) => ({r: q.r, c: q.c, color: i}));
+  const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
+  let head = 0;
+  while (head < queue.length) {
+    const {r, c, color} = queue[head++];
+    for (const [dr, dc] of dirs) {
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < size && nc >= 0 && nc < size && grid[nr][nc] === -1) {
+        grid[nr][nc] = color;
+        queue.push({r: nr, c: nc, color});
+      }
+    }
+  }
+
+  // Check all cells assigned
+  for (let r = 0; r < size; r++)
+    for (let c = 0; c < size; c++)
+      if (grid[r][c] === -1) return null;
+
+  return grid;
+}
+
+function buildSimpleRegions(size, solution) {
+  const grid = Array.from({length: size}, () => Array(size).fill(0));
+  solution.forEach((q, i) => {
+    for (let r = 0; r < size; r++)
+      grid[r][q.c] = i;
+  });
+  return grid;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RENDER PUZZLE
+// ═══════════════════════════════════════════════════════════
+function startPlayerGame() {
+  showScreen('screen-game');
+  document.getElementById('game-playername').textContent = '🐨 ' + playerName;
+
+  // Init playerGrid
+  playerGrid = Array.from({length: puzzle.size}, () => Array(puzzle.size).fill(null));
+  solved = false;
+
+  // Timer
+  startTime = Date.now();
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(updateTimer, 1000);
+
+  renderGrid();
+  renderPalette();
+  renderColorLegend();
+  // Real-time leaderboard updates via Firebase
+  sListen(KEY_SCORES, (scores) => {
+    renderLeaderboard('game-leaderboard', scores || {});
+  });
+}
+
+function renderGrid() {
+  const grid = document.getElementById('puzzle-grid');
+  const n = puzzle.size;
+  grid.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
+  grid.innerHTML = '';
+
+  // Draw region borders
+  const regionBorders = computeRegionBorders(puzzle.regions, n);
+
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+
+      const colorIdx = puzzle.regions[r][c];
+      const col = COLORS[colorIdx % COLORS.length];
+      cell.style.background = col.bg + '55'; // subtle tint for region
+
+      // Region borders
+      const borders = regionBorders[r][c];
+      let borderStyle = '';
+      if (borders.top) borderStyle += `border-top: 2.5px solid ${col.dot};`;
+      if (borders.bottom) borderStyle += `border-bottom: 2.5px solid ${col.dot};`;
+      if (borders.left) borderStyle += `border-left: 2.5px solid ${col.dot};`;
+      if (borders.right) borderStyle += `border-right: 2.5px solid ${col.dot};`;
+      cell.style.cssText += borderStyle;
+
+      // Color dot indicator
+      const dot = document.createElement('div');
+      dot.className = 'color-dot';
+      dot.style.background = col.dot;
+      cell.appendChild(dot);
+
+      // Player placement
+      if (playerGrid[r][c] !== null) {
+        const koala = document.createElement('span');
+        koala.className = 'koala-icon';
+        koala.textContent = '🐨';
+        const placedColor = COLORS[playerGrid[r][c] % COLORS.length];
+        cell.style.background = placedColor.bg;
+        cell.appendChild(koala);
+      }
+
+      if (selectedCell && selectedCell.r === r && selectedCell.c === c) {
+        cell.classList.add('selected');
+      }
+
+      cell.addEventListener('click', () => selectCell(r, c));
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function computeRegionBorders(regions, n) {
+  const b = Array.from({length: n}, () => Array.from({length: n}, () => ({})));
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      const reg = regions[r][c];
+      b[r][c].top    = r === 0 || regions[r-1][c] !== reg;
+      b[r][c].bottom = r === n-1 || regions[r+1][c] !== reg;
+      b[r][c].left   = c === 0 || regions[r][c-1] !== reg;
+      b[r][c].right  = c === n-1 || regions[r][c+1] !== reg;
+    }
+  }
+  return b;
+}
+
+function renderPalette() {
+  const p = document.getElementById('palette');
+  p.innerHTML = '';
+  for (let i = 0; i < puzzle.size; i++) {
+    const col = COLORS[i % COLORS.length];
+    const btn = document.createElement('button');
+    btn.className = 'palette-btn';
+    btn.style.background = col.bg;
+    btn.style.borderColor = col.dot;
+    btn.title = `Color ${i+1}`;
+    btn.innerHTML = `<span style="font-size:1.3rem;">🐨</span>`;
+    btn.addEventListener('click', () => {
+      selectedColor = i;
+      document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (selectedCell) placeKoala();
+    });
+    p.appendChild(btn);
+  }
+}
+
+function renderColorLegend() {
+  const legend = document.getElementById('color-legend');
+  legend.innerHTML = '';
+  for (let i = 0; i < puzzle.size; i++) {
+    const col = COLORS[i % COLORS.length];
+    legend.innerHTML += `<div class="legend-item">
+      <div class="legend-dot" style="background:${col.dot}"></div>
+      <span>Region ${i+1}</span>
+    </div>`;
+  }
+}
+
+function selectCell(r, c) {
+  selectedCell = {r, c};
+  renderGrid();
+  if (selectedColor !== null) placeKoala();
+}
+
+function placeKoala() {
+  if (!selectedCell || selectedColor === null) return;
+  const {r, c} = selectedCell;
+  playerGrid[r][c] = selectedColor;
+  renderGrid();
+  checkSolution();
+}
+
+function clearSelected() {
+  if (!selectedCell) return;
+  const {r, c} = selectedCell;
+  playerGrid[r][c] = null;
+  renderGrid();
+}
+
+function checkSolution() {
+  const n = puzzle.size;
+  // Check: each row has exactly 1 koala, each col has 1, each region has 1, no adjacency
+  const rowCount = Array(n).fill(0);
+  const colCount = Array(n).fill(0);
+  const regCount = Array(n).fill(0);
+  let total = 0;
+  let valid = true;
+
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      if (playerGrid[r][c] !== null) {
+        total++;
+        rowCount[r]++;
+        colCount[c]++;
+        regCount[puzzle.regions[r][c]]++;
+      }
+    }
+  }
+
+  if (total < n) return; // not complete yet
+
+  // Validation
+  for (let i = 0; i < n; i++) {
+    if (rowCount[i] !== 1 || colCount[i] !== 1 || regCount[i] !== 1) valid = false;
+  }
+
+  // Check adjacency
+  if (valid) {
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (playerGrid[r][c] !== null) {
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              if (dr === 0 && dc === 0) continue;
+              const nr = r + dr, nc = c + dc;
+              if (nr >= 0 && nr < n && nc >= 0 && nc < n && playerGrid[nr][nc] !== null) {
+                valid = false;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Also check color matches region
+  if (valid) {
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (playerGrid[r][c] !== null && playerGrid[r][c] !== puzzle.regions[r][c]) {
+          valid = false;
+        }
+      }
+    }
+  }
+
+  if (valid && !solved) {
+    solved = true;
+    clearInterval(timerInterval);
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    onSolved(elapsed);
+  }
+}
+
+async function onSolved(elapsed) {
+  const mins = Math.floor(elapsed / 60);
+  const secs = elapsed % 60;
+  const timeStr = `${mins}:${secs.toString().padStart(2,'0')}`;
+
+  // Save score
+  const scores = await sGet(KEY_SCORES) || {};
+  if (!scores[playerName] || elapsed < (scores[playerName].time || Infinity)) {
+    scores[playerName] = { name: playerName, time: elapsed, timeStr, ts: Date.now() };
+    await sSet(KEY_SCORES, scores);
+  }
+
+  // Update player record
+  const players = await sGet(KEY_PLAYERS) || {};
+  if (players[playerName]) {
+    players[playerName].done = true;
+    players[playerName].score = elapsed;
+    players[playerName].time = timeStr;
+    await sSet(KEY_PLAYERS, players);
+  }
+
+  // Show win banner
+  const winArea = document.getElementById('win-area');
+  winArea.innerHTML = `
+    <div class="win-banner">
+      <h2>🎉 Puzzle Solved!</h2>
+      <p>Time: ${timeStr} — Great job, ${playerName}!</p>
+    </div>`;
+
+  loadLeaderboard('game-leaderboard');
+  showToast('🐨 Congratulations! Puzzle complete!', 4000);
+}
+
+function updateTimer() {
+  if (!startTime || solved) return;
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const mins = Math.floor(elapsed / 60);
+  const secs = elapsed % 60;
+  const el = document.getElementById('game-timer');
+  el.textContent = `${mins}:${secs.toString().padStart(2,'0')}`;
+  el.classList.toggle('urgent', elapsed > 300);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  LEADERBOARD
+// ═══════════════════════════════════════════════════════════
+function renderLeaderboard(targetId, scores) {
+  const sorted = Object.values(scores).sort((a, b) => a.time - b.time);
+  const el = document.getElementById(targetId);
+  if (!el) return;
+  if (sorted.length === 0) {
+    el.innerHTML = '<li style="color:var(--text2);font-size:0.85rem;padding:8px 0;">No finishers yet</li>';
+    return;
+  }
+  el.innerHTML = sorted.slice(0, 15).map((s, i) => {
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
+    return `<li>
+      <span class="lb-rank">${medal}</span>
+      <span class="lb-name">${s.name}</span>
+      <span class="lb-score">${s.timeStr}</span>
+    </li>`;
+  }).join('');
+}
+
+async function loadLeaderboard(targetId) {
+  const scores = await sGet(KEY_SCORES) || {};
+  renderLeaderboard(targetId, scores);
+}
+
+async function checkGameState() {
+  const gs = await sGet(KEY_GAMESTATE);
+  if (gs && gs.status === 'running' && !gameStarted) {
+    puzzle = await sGet(KEY_PUZZLE);
+    startPlayerGame();
+  }
+  updateLobby();
+  loadLeaderboard('game-leaderboard');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  HOST FLOW
+// ═══════════════════════════════════════════════════════════
+function goHost() {
+  isHost = true;
+  showScreen('screen-host');
+  const link = window.location.href.replace(/host\.html.*$/, '').replace(/#.*$/, '');
+  document.getElementById('share-link').textContent = link + 'index.html';
+
+  // Real-time listeners for host dashboard
+  sListen(KEY_PLAYERS, (players) => {
+    const pList = Object.values(players || {});
+    document.getElementById('stat-players').textContent = pList.length;
+    document.getElementById('stat-finished').textContent = pList.filter(p => p.done).length;
+    const pg = document.getElementById('host-players');
+    pg.innerHTML = pList.map(p => `
+      <div class="player-chip ${p.done ? 'done' : ''}">
+        <div class="chip-name">🐨 ${p.name}</div>
+        <div class="chip-status">${p.done ? '✅ ' + p.time : '⏳ playing'}</div>
+      </div>`).join('');
+  });
+
+  sListen(KEY_SCORES, (scores) => {
+    renderLeaderboard('host-leaderboard', scores || {});
+  });
+
+  sListen(KEY_GAMESTATE, (gs) => {
+    document.getElementById('stat-status').textContent = gs && gs.status === 'running' ? 'Running' : 'Lobby';
+  });
+}
+
+async function hostRefresh() {
+  // Manual refresh still available
+  loadLeaderboard('host-leaderboard');
+}
+
+async function hostStartGame() {
+  const SIZE = 7; // 7x7 grid, 7 colors — good for 25-30 players
+
+  showToast('Generating puzzle…');
+  document.getElementById('host-start-btn').disabled = true;
+
+  // Reset scores and player done-states
+  const players = await sGet(KEY_PLAYERS) || {};
+  Object.values(players).forEach(p => { p.done = false; p.score = null; p.time = null; });
+  await sSet(KEY_PLAYERS, players);
+  await sSet(KEY_SCORES, {});
+
+  // Generate puzzle
+  const puz = generatePuzzle(SIZE);
+  await sSet(KEY_PUZZLE, puz);
+  await sSet(KEY_GAMESTATE, { status: 'running', startedAt: Date.now(), size: SIZE });
+
+  document.getElementById('host-start-btn').disabled = false;
+  showToast('🎮 Game started! Players can begin.', 3000);
+  hostRefresh();
+}
+
+function copyLink() {
+  const link = window.location.href.replace(/host\.html.*/, 'index.html').replace(/#.*$/, '');
+  navigator.clipboard.writeText(link).then(() => showToast('Link copied! Share with players.'));
+}
+
+// ═══════════════════════════════════════════════════════════
+//  INIT — expose functions to HTML onclick handlers
+// ═══════════════════════════════════════════════════════════
+window.joinGame = joinGame;
+window.goHost = goHost;
+window.hostRefresh = hostRefresh;
+window.hostStartGame = hostStartGame;
+window.copyLink = copyLink;
+window.checkGameState = checkGameState;
+window.clearSelected = clearSelected;
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (window.location.pathname.includes('host') || window.location.hash === '#host') goHost();
+});
+</script>
+</body>
+</html>
